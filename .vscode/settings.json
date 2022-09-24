@@ -1,0 +1,11 @@
+{
+    "cSpell.enableFiletypes": [
+        "!asciidoc",
+        "!c",
+        "!cpp",
+        "!csharp",
+        "!css",
+        "!go",
+        "!handlebars"
+    ]
+}

@@ -1,0 +1,214 @@
+openapi: 3.0.0
+info:
+  title: ""
+  description: ""
+  version: "1"
+servers:
+- url: https://virtserver.swaggerhub.com/NuVeS/Shortener/1
+  description: SwaggerHub API Auto Mocking
+paths:
+  /login:
+    post:
+      tags:
+      - auth
+      summary: Login using name and password
+      operationId: login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+        required: true
+      responses:
+        "200":
+          description: Success. Returns login token used for other requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        "400":
+          description: Bad Request
+  /register:
+    post:
+      tags:
+      - auth
+      summary: Register new user using name and password. Returns token
+      operationId: register
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+        required: true
+      responses:
+        "200":
+          description: Success. Returns login token used for other requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        "400":
+          description: Bad Request
+  /logout:
+    get:
+      tags:
+      - auth
+      summary: Drops token
+      operationId: logout
+      parameters:
+      - name: token
+        in: header
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Success
+        "400":
+          description: Bad Request
+  /list:
+    get:
+      tags:
+      - urls
+      summary: List all user links
+      operationId: list
+      parameters:
+      - name: token
+        in: header
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LinkListResponse'
+        "400":
+          description: Bad Request
+  /shorten:
+    post:
+      tags:
+      - urls
+      summary: Make a new short link from url
+      operationId: shorten
+      parameters:
+      - name: token
+        in: header
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewLinkRequest'
+        required: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LinkResponse'
+        "400":
+          description: Bad Request
+  /delete:
+    post:
+      tags:
+      - urls
+      summary: Delete saved link
+      operationId: delete
+      parameters:
+      - name: token
+        in: header
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LinkRequest'
+        required: true
+      responses:
+        "200":
+          description: Success
+        "400":
+          description: Bad Request
+components:
+  schemas:
+    LinkRequest:
+      required:
+      - url
+      type: object
+      properties:
+        url:
+          type: string
+    NewLinkRequest:
+      required:
+      - url
+      type: object
+      properties:
+        url:
+          type: string
+        beauty:
+          type: string
+    LinkListResponse:
+      required:
+      - list
+      type: object
+      properties:
+        list:
+          type: array
+          items:
+            $ref: '#/components/schemas/LinkResponse'
+      example:
+        list:
+        - shortUrl: shortUrl
+          url: url
+        - shortUrl: shortUrl
+          url: url
+    LinkResponse:
+      required:
+      - shortUrl
+      - url
+      type: object
+      properties:
+        url:
+          type: string
+        shortUrl:
+          type: string
+      example:
+        shortUrl: shortUrl
+        url: url
+    LoginRequest:
+      required:
+      - name
+      - password
+      type: object
+      properties:
+        name:
+          type: string
+          example: i.ivanov
+        password:
+          type: string
+          example: qwerty123
+    LoginResponse:
+      required:
+      - token
+      type: object
+      properties:
+        token:
+          type: string
+      example:
+        token: token

@@ -3,17 +3,14 @@ package main
 import (
 	"net/http"
 
-	"github.com/NuVeS/URLShort/cmd/handler"
+	"github.com/NuVeS/URLShort/cmd/router"
 )
 
 func main() {
-	http.HandleFunc("/", handler.MainHandler)
+	router := router.NewRouter()
 
-	err := http.ListenAndServe(":33333", nil)
-
-	if err != nil {
-		print("Error starting server")
-	}
+	http.ListenAndServe(":8080", router)
 
 	// print(shortener.MakeShort("test"))
+
 }
