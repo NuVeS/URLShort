@@ -15,6 +15,8 @@ import (
 	"github.com/google/uuid"
 )
 
+var DB storage.StorageAPI
+
 func Login(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	var body models.LoginRequest
@@ -26,7 +28,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 	user := &models.User{Name: body.Name, Password: body.Password}
 	token := uuid.New().String()
-	storage.Storage.SetToken(token, user)
+	DB.SetToken(token, user)
 
 	response := models.LoginResponse{Token: token}
 
@@ -45,8 +47,8 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 
 	token := r.Header.Get("token")
 
-	user := storage.Storage.GetUserByToken(token)
-	ok := storage.Storage.DeleteUser(user)
+	user := DB.GetUserByToken(token)
+	ok := DB.DeleteUser(user)
 
 	if ok {
 		w.WriteHeader(http.StatusOK)
@@ -69,7 +71,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ok := storage.Storage.CreateUser(body.Name, body.Password)
+	ok := DB.CreateUser(body.Name, body.Password)
 
 	if ok {
 		token := uuid.New().String()

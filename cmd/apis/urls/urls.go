@@ -9,14 +9,27 @@ package urls
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/NuVeS/URLShort/cmd/models"
 	"github.com/NuVeS/URLShort/cmd/shortener"
 	"github.com/NuVeS/URLShort/cmd/storage"
 )
 
+var DB storage.StorageAPI
+
+var addingPart = "http://localhost/" // os.Getenv("REMOTE_ADDR")
+
 func Delete(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+
+	token := r.Header.Get("token")
+
+	if DB.GetUserByToken(token) == nil {
+		sendError(w, http.StatusUnauthorized)
+		return
+	}
+
 	var body models.LinkRequest
 	err := json.NewDecoder(r.Body).Decode(&body)
 	if err != nil {
@@ -24,8 +37,7 @@ func Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token := r.Header.Get("token")
-	ok := storage.Storage.DeleteLink(token, body.Url)
+	ok := DB.DeleteLink(token, body.Url)
 
 	if ok {
 		sendOK(w)
@@ -39,10 +51,15 @@ func List(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	token := r.Header.Get("token")
 
-	list := storage.Storage.ListLinks(token)
-	var jsonList = make([]models.LinkResponse, 2)
+	if DB.GetUserByToken(token) == nil {
+		sendError(w, http.StatusUnauthorized)
+		return
+	}
+
+	list := DB.ListLinks(token)
+	var jsonList = make([]models.LinkResponse, 0)
 	for _, item := range list {
-		temp := models.LinkResponse{Url: item.Url, ShortUrl: item.Short}
+		temp := models.LinkResponse{Url: item.Url, ShortUrl: addingPart + item.Short}
 		jsonList = append(jsonList, temp)
 	}
 	response := models.LinkListResponse{List: jsonList}
@@ -60,6 +77,12 @@ func Shorten(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
 	token := r.Header.Get("token")
+
+	if DB.GetUserByToken(token) == nil {
+		sendError(w, http.StatusUnauthorized)
+		return
+	}
+
 	var body models.NewLinkRequest
 	err := json.NewDecoder(r.Body).Decode(&body)
 	if err != nil {
@@ -69,7 +92,7 @@ func Shorten(w http.ResponseWriter, r *http.Request) {
 
 	writeLinkResponse := func(beauty *string) {
 		link := makeNewLink(token, body.Url, beauty)
-		response := models.LinkResponse{Url: body.Url, ShortUrl: link}
+		response := models.LinkResponse{Url: body.Url, ShortUrl: addingPart + link}
 		json, _ := json.Marshal(response)
 
 		w.WriteHeader(http.StatusOK)
@@ -77,7 +100,7 @@ func Shorten(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(body.Beauty) != 0 {
-		available := storage.Storage.IsAvailable(body.Beauty)
+		available := DB.IsAvailable(body.Beauty)
 		if !available {
 			w.WriteHeader(http.StatusBadRequest)
 			json, _ := json.Marshal("Not available link")
@@ -91,13 +114,21 @@ func Shorten(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func Route(w http.ResponseWriter, r *http.Request) {
+	uri := r.RequestURI
+	paths := strings.Split(uri, "/")
+	url := DB.GetURL(paths[len(paths)-1])
+
+	http.Redirect(w, r, url, http.StatusSeeOther)
+}
+
 func makeNewLink(token string, link string, beauty *string) string {
 	if beauty != nil {
-		storage.Storage.AddLink(token, link, *beauty)
+		DB.AddLink(token, link, *beauty)
 		return *beauty
 	} else {
 		short := shortener.MakeShort(link)
-		storage.Storage.AddLink(token, link, short)
+		DB.AddLink(token, link, short)
 		return short
 	}
 }

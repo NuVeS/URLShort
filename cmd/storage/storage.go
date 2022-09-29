@@ -20,6 +20,7 @@ type StorageAPI interface {
 	GetUserByToken(token string) *models.User
 	SetToken(token string, user *models.User) bool
 	IsAvailable(link string) bool
+	GetURL(shortLink string) string
 }
 
 type StorageDB struct{}
@@ -79,6 +80,18 @@ func (strg *StorageDB) SetToken(token string, user *models.User) bool {
 func (strg *StorageDB) IsAvailable(link string) bool {
 	_, occupied := linkList[link]
 	return !occupied
+}
+
+func (strg *StorageDB) GetURL(shortLink string) string {
+	for _, value := range linkList {
+		for _, item := range value {
+			if item.Short == shortLink {
+				return item.Url
+			}
+		}
+	}
+
+	return ""
 }
 
 func remove(slice []*models.Link, s int) []*models.Link {

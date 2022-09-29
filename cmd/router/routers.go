@@ -41,6 +41,9 @@ func NewRouter() *mux.Router {
 			Handler(handler)
 	}
 
+	router.NotFoundHandler = http.HandlerFunc(urls.Route)
+
+	router.Use()
 	return router
 }
 
@@ -52,7 +55,7 @@ var routes = Routes{
 	Route{
 		"Index",
 		"GET",
-		"/NuVeS/Shortener/1/",
+		"/index",
 		Index,
 	},
 
