@@ -1,14 +1,16 @@
-FROM golang:1.10 AS build
-WORKDIR /go/src
-COPY go ./go
-COPY main.go .
+FROM golang:1.18 AS build
+RUN mkdir /app 
+ADD . /app/ 
+WORKDIR /app 
+COPY go.mod ./
+COPY go.sum ./
+RUN go mod download
+RUN go build -o main . 
+CMD ["/app/main"]
 
 ENV CGO_ENABLED=0
 RUN go get -d -v ./...
 
-RUN go build -a -installsuffix cgo -o swagger .
-
 FROM scratch AS runtime
-COPY --from=build /go/src/swagger ./
-EXPOSE 8080/tcp
-ENTRYPOINT ["./swagger"]
+ADD URLShort /
+CMD ["/main"]

@@ -4,7 +4,7 @@ import (
 	"github.com/NuVeS/URLShort/cmd/models"
 )
 
-var users = make([]*models.User, 10)
+var users = make([]*models.User, 0)
 
 var tokens = make(map[string]*models.User)
 
@@ -28,6 +28,11 @@ type StorageDB struct{}
 var Storage = StorageDB{}
 
 func (strg *StorageDB) CreateUser(name string, password string) bool {
+	found, _ := strg.GetUser(name)
+	if found {
+		return false
+	}
+
 	newUser := &models.User{Name: name, Password: password}
 	users = append(users, newUser)
 	return true
