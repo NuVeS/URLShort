@@ -8,7 +8,6 @@ COPY go.sum ./
 RUN go mod download
 
 COPY *.go ./
-COPY ./cmd ./
 
 RUN go build -o main .
 
