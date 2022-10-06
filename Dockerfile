@@ -11,4 +11,4 @@ COPY *.go ./
 COPY cmd ./
 
 RUN go build -o main . 
-CMD ["/URLShort"]
+CMD ["/main"]
