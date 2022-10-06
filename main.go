@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -19,18 +20,19 @@ func main() {
 	router := router.NewRouter()
 
 	srv := &http.Server{
-		Addr: "0.0.0.0:8080",
-		// Good practice to set timeouts to avoid Slowloris attacks.
+		Addr:         ":8080",
 		WriteTimeout: time.Second * 15,
 		ReadTimeout:  time.Second * 15,
 		IdleTimeout:  time.Second * 60,
-		Handler:      router, // Pass our instance of gorilla/mux in.
+		Handler:      router,
 	}
 
 	auth.DB = storage
 	urls.DB = storage
 
 	go srv.ListenAndServe()
+
+	fmt.Println()
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
