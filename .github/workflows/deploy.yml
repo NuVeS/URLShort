@@ -25,6 +25,12 @@ jobs:
      - name: "Run deploy on server"
        uses: appleboy/ssh-action@master
        with:
-          host: 178.20.47.56
-          username: root 
-          key: 123
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }} 
+          key: ${{ secrets.KEY_ED25519 }}
+          port: ${{ secrets.PORT }}
+          script: |
+            cd ~/URLShort
+            git pull
+            docker build --tag docker-shortener-v1 .
+            docker run -d --publish 80:8080 docker-shortener-v1
