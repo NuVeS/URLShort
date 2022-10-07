@@ -30,4 +30,5 @@ jobs:
             cd ~/URLShort
             git pull
             docker build --tag docker-shortener-v1 .
+            docker stop $(docker ps -q --filter ancestor=docker-shortener-v1)
             docker run -d --publish 80:8080 docker-shortener-v1
