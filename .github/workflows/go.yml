@@ -5,10 +5,12 @@ on:
     branches: [ "master" ]
   pull_request:
     branches: [ "master" ]
+    
+  workflow_dispatch:
 
 jobs:
 
-  build:
+  test:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -20,6 +22,21 @@ jobs:
 
     - name: Test
       run: go test -v ./...
-      
-    - name: Build the Docker image
-      run: docker build --tag docker_shortener:$(date +%s) .
+
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+     - name: "Run deploy on server"
+       uses: appleboy/ssh-action@master
+       with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }} 
+          key: ${{ secrets.KEY_ED25519 }}
+          port: ${{ secrets.PORT }}
+          script: |
+            cd ~/URLShort
+            git pull
+            docker stop $(docker ps -q --filter ancestor=docker-shortener-v1)
+            docker build --tag docker-shortener-v1 .
+            docker run -d --publish 80:8080 docker-shortener-v1
